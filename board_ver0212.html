@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<script type="text/JavaScript">
+    
+      var db;
+      function createDB(){
+        db = window.openDatabase("dbdb","1.0", "테스트용DB", 1024*1024);
+      }
+      
+      function createTable(){
+        db.transaction(function(tx){
+          tx.executeSql("create table Test (count integer primary key autoincrement ,id text,subject text,message text,super integer)");
+        });
+      }
+      
+      function insertData(){
+    	  var n = message.value;
+    	  var n = n.replace(/\n/gi,"<br>");
+    	  var n = n.replace(/ /gi,"&nbsp");
+    	  
+        db.transaction(function(tx){
+          tx.executeSql("insert into Test values(NULL,?,?,?,NULL)",[id.value,subject.value,n]);
+        });
+        myRefresh();
+      }
+      
+     
+       function deleteData(index){
+    	  db.transaction(function(tx){
+    		  tx.executeSql("DELETE FROM Test WHERE count ="+index+" OR super="+index);
+    		  
+    	  });
+    	  myRefresh();  
+      }
+       
+        function updateData(index2){
+      	  var n = message.value;
+    	  var n = n.replace(/\n/gi,"<br>");
+    	  var n = n.replace(/ /gi,"&nbsp");
+           db.transaction(function(tx){              
+        	   tx.executeSql('UPDATE Test SET id="'+id.value+'", subject="'+subject.value+'", message="'+n+'" WHERE count='+index2);        	   
+           });
+           myRefresh();
+    	   
+       }
+      
+        function insertReply(index){
+      	  var n = message.value;
+    	  var n = n.replace(/\n/gi,"<br>");
+    	  var n = n.replace(/ /gi,"&nbsp");
+        	db.transaction(function(tx){
+        		
+        		tx.executeSql("insert into Test values(NULL,?,?,?,?)",[id.value,subject.value,n,index]);
+        		
+        	});
+        	
+        	myRefresh();
+        }
+
+
+      function selectDataAll(){
+          db.transaction(function(tx){
+            tx.executeSql("select * from Test",[],
+              
+              function(tx,result){            
+                for(var i = 0; i < result.rows.length; i++){
+                  var row = result.rows.item(i);
+                  if(row['super']==null){
+                  document.getElementById('table0').innerHTML +=  '<tr><td width="70" align="center"> 글 순서 </td><td width="150" align="center"> 아이디 </td><td width="350"> 제목 </td><td> 댓글 <button onclick="insertReply('+row["count"]+');"> 등록 </button> </td></tr>'
+                  +	  '<tr><td align="center">' + row['count'] +'</td><td align="center">'+ row['id'] + "</td><td>" 
+                  + row['subject']
+					+ '</td>'
+					+'<td align="center" rowspan="2"><table id="table'+row['count']+'" border="1" width="600" style="border-collapse:collapse;table-layout:fixed">'+selectReplyAll(row['count'])+'</table>'
+					+'</td>'
+					+'</tr><tr><td align="center"> 내용 <button onclick="deleteData('+row["count"]+');"> 글 삭제 </button>  <button onclick="updateData('+row["count"]+');"> 글 수정 </button> </td><td colspan="2">' 
+					
+					+'<DIV style="width:495px; height:300px; overflow-y:scroll; padding:1px; border:1; border-style:solid; border-color:#EBEBEB">'
+					+row['message']
+					+'</DIV>'
+					+"</td></tr>";
+                  }
+                }                            
+              });
+              
+          });
+        }
+      
+      function selectReplyAll(index){
+    	  db.transaction(function(tx){
+              tx.executeSql("select * from Test",[],
+                
+                function(tx,result){            
+                  for(var i = 0; i < result.rows.length; i++){
+                    var row = result.rows.item(i);
+                    if(row['super']==index){
+                    document.getElementById('table'+index).innerHTML +=  '<tr><td width="100" align="center" > 댓글 순서 </td><td width="150" align="center"> 아이디 </td><td width="350" style="word-break:break-all;"> 제목 </td></tr>'
+                    +'<tr><td align="center">' + row['count'] +'</td><td align="center">'+ row['id'] + "</td><td>" 
+                    + row['subject']
+  					+ '</td>'
+  					+'</tr><tr><td align="center"> 내용 <button onclick="deleteData('+row["count"]+');"> 댓글 삭제 </button>  <button onclick="updateData('+row["count"]+');"> 댓글 수정 </button> </td><td colspan="2">' 
+  					+'<DIV style="width:495px; height:100px; overflow-y:scroll; padding:1px; border:1; border-style:solid; border-color:#EBEBEB">'
+  					+row['message']
+  					+'</DIV>'
+  					+"</td></tr>";
+                    }
+                  }                            
+                });
+                
+            });
+    	  return "";
+      }
+      
+      
+      
+            
+      function myRefresh(){
+    	  db.transaction(function(tx){              
+    		  tx.executeSql('delete from autoincrement where name="Test"');      	   
+          });
+    	  setTimeout("history.go(0)", 10);
+    	  
+      }
+      
+      
+    </script>
+
+<body>
+<Script>
+createDB();
+createTable();
+selectDataAll();
+</Script>
+
+<!-- 	<button onclick="createDB()">DB 생성</button>
+	<br>
+	<button onclick="createTable();">테이블생성</button> -->
+	<br> ID:
+	<input type="text" id="id"> , <br>제목:
+	<input type="text" id="subject"><br>
+	<textarea rows="5" cols="40" id="message"></textarea>
+	<br>
+	<button onclick="insertData();"> 글 등록 </button>
+	<br>
+	<!-- <button onclick="selectData();">조회</button> -->
+	<br>
+	<table id="table0" border="1" width="1200" style="border-collapse:collapse;table-layout:fixed"></table>
+
+
+</body>
+</html>
