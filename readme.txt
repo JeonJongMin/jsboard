@@ -24,6 +24,10 @@
 
 2013.02.12 화요일
 
+
+html : board_ver0212.html
+
+
 1 댓글 기능 추가
 - 기존의 게시판 글 목록에 댓글 셀을 추가하여 댓글을 구현함
 - 데이터베이스의 테이블에 새로운 속성 super integer 를 추가하였다.
@@ -62,3 +66,28 @@
 
 
 ------------------------------------------------------------
+
+
+
+2013.02.13 수요일
+
+
+html : board_ver0213.html
+
+
+1. 레코드 속성에 비밀번호 추가
+1) create table Test (count integer primary key autoincrement ,id text,subject text,message text,password text,super integer)
+2) input type="password" 를 생성하여 비밀번호를 입력받게 하였다.
+3) insert후 deleteData나 updateData 함수 실행 시에 레코드의 password를 추가적으로 매개변수로 입력받아 사용자가 입력창에 입력한 password와 일치시에 함수를 실행하도록 하였다.
+
+
+2. 표
+1) 입력창과 게시판을 가운데정렬
+2) 표를 좀더 보기 편하게 정리하였다.
+
+
+
+------------------------------------------------------------
+
+
+
