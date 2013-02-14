@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Board</title>
+</head>
+<Script	src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></Script>
+<script type="text/JavaScript">
+    
+      var db;
+      function createDB(){
+        db = window.openDatabase("dbdb","1.0", "테스트용DB", 10*1024*1024);
+      }
+      
+      function createTable(){
+        db.transaction(function(tx){
+          tx.executeSql("create table Test (count integer primary key autoincrement ,id text,subject text,message text,date text,password text,super integer)");
+        });
+      }
+      
+      function insertData(){
+    	  var n = message.value;
+    	  var n = n.replace(/\n/gi,"<br>");
+    	  var n = n.replace(/ /gi,"&nbsp");
+    	  var date = new Date();
+    	  var now = date.getFullYear()+"년 "+(date.getMonth()+1)+"월 "+date.getDate()+"일 "+date.getHours()+"시 "+date.getMinutes()+"분 "+date.getSeconds()+"초";
+    		
+        db.transaction(function(tx){
+        	
+          tx.executeSql("insert into Test values(NULL,?,?,?,?,?,NULL)",[id.value,subject.value,n,now,password.value]);
+          
+        });
+        myRefresh();
+        
+      }
+      
+     
+       function deleteData(index, index2){
+    	   
+    	  if(password.value == index2){
+    	  db.transaction(function(tx){
+    		  
+    		  tx.executeSql("DELETE FROM Test WHERE count ="+index+" OR super="+index);
+    		  
+    	  });
+    	   }
+    	  myRefresh();  
+      }
+       
+        function updateData(index2, index3){
+        	if(index3 == password.value){
+      	  var n = message.value;
+    	  var n = n.replace(/\n/gi,"<br>");
+    	  var n = n.replace(/ /gi,"&nbsp");
+           db.transaction(function(tx){              
+        	   tx.executeSql('UPDATE Test SET id="'+id.value+'", subject="'+subject.value+'", message="'+n+'" WHERE count='+index2);        	   
+           });
+        	}
+        	myRefresh();
+       }
+      
+        function insertReply(index){
+      	  var n = message.value;
+    	  var n = n.replace(/\n/gi,"<br>");
+    	  var n = n.replace(/ /gi,"&nbsp");
+    	  var date = new Date();
+    	  var now = date.getFullYear()+"년 "+(date.getMonth()+1)+"월 "+date.getDate()+"일 "+date.getHours()+"시 "+date.getMinutes()+"분 "+date.getSeconds()+"초";
+    	
+    	  
+        	db.transaction(function(tx){
+        		
+        		tx.executeSql("insert into Test values(NULL,?,?,?,?,?,?)",[id.value,subject.value,n,now,password.value,index]);
+        		
+        	});
+        	
+        	myRefresh();
+        }
+
+
+      function selectDataAll(){
+          db.transaction(function(tx){
+            tx.executeSql("select * from Test",[],
+              
+              function(tx,result){            
+                for(var i = 0; i < result.rows.length; i++){
+                  var row = result.rows.item(i);
+                  if(row['super']==null){
+                	  
+                  document.getElementById('table0').innerHTML +=  '<tr><td width="70" align="center"> 글 순서 </td><td width="120" align="center"> 아이디 </td><td width="300" high=""> 제목</td><td width="80"> <button onclick="toggle('+row['count']+", \'"+ row['count']+"\'" +');"> 본문 확인 </button> </td><td rowspan="1"> 댓글 <button onclick="insertReply('+row["count"]+');"> 등록 </button> </td></tr>'
+                  +'<tr id="trdata'+row['count']+'" ><td align="center">' + row['count'] +'</td><td align="center">'+ row['id'] + "</td><td colspan=2>" 
+                  + row['subject']
+					+ '</td>'
+					+'<td align="center" rowspan="3"><table id="table'+row['count']+'" border="1" width="600" style="border-collapse:collapse;table-layout:fixed">'+selectReplyAll(row['count'])+'</table>'
+					+'</td>'
+					+'</tr><tr><td align="center"> 작성 일 </td><td colspan="3" height="25">'+row['date']+'</td>'
+					+'</tr><tr id="divdata'+row['count']+'"><td align="center"> 내용 <button onclick="deleteData('+row['count']+", \'"+ row['password']+"\'" +');"> 글 삭제 </button>  <button onclick="updateData('+row['count']+", \'"+ row['password']+"\'" +');"> 글 수정 </button> </td><td colspan="3">' 
+					
+					+'<DIV style="width:495px; height:300px; overflow-y:scroll; padding:1px; border:1; border-style:solid; border-color:#EBEBEB">'
+					+row['message']
+					+'</DIV>'
+					+"</td></tr>";
+					$("#table"+row['count']).hide();
+					$("#divdata"+row['count']).hide();
+
+                  }
+                }                            
+              });
+              
+          });
+        }
+      
+      function selectReplyAll(index){
+    	  db.transaction(function(tx){
+              tx.executeSql("select * from Test",[],
+                
+                function(tx,result){            
+                  for(var i = 0; i < result.rows.length; i++){
+                    var row = result.rows.item(i);
+                    if(row['super']==index){
+                    document.getElementById('table'+index).innerHTML +=  
+                    '<tr><td width="100" align="center" > 댓글 순서 </td><td width="150" align="center"> 아이디 </td><td width="350" style="word-break:break-all;"> 제목 </td></tr>'
+                    +'<tr><td id="trreply'+row['count']+'" align="center">' + row['count'] +'</td><td align="center">'+ row['id'] + "</td><td>" 
+                    + row['subject']
+  					+ '</td>'
+  					+'</tr><tr><td align="center"> 작성 일 </td><td colspan="2" height="20">'+row['date']+'</td>'
+  					+'</tr><tr id="divreply'+row['count']+'" ><td align="center"> 내용 <button onclick="deleteData('+row['count']+", \'"+ row['password']+"\'" +');"> 댓글 삭제 </button>  <button onclick="updateData('+row['count']+", \'"+ row['password']+"\'" +');"> 댓글 수정 </button> </td><td colspan="2">' 
+  					+'<DIV style="width:495px; height:100px; overflow-y:scroll; padding:1px; border:1; border-style:solid; border-color:#EBEBEB">'
+  					+row['message']
+  					+'</DIV>'
+  					+"</td></tr>";
+                  
+                    }
+                  }
+                });
+                
+            });
+    	  return "";
+      }
+      
+      
+      
+            
+      function myRefresh(){
+
+    	  setTimeout("history.go(0)", 10);
+    	  
+      }
+      
+      
+      function toggle(name1,name2){
+		
+      	$("#divdata"+name2).toggle("slow");
+    	$("#table"+name2).toggle("slow");
+
+      }
+      
+      
+    </script>
+
+<body>
+<Script>
+createDB();
+createTable();
+selectDataAll();
+
+</Script>
+
+<!-- 	<button onclick="createDB()">DB 생성</button>
+	<br>
+	<button onclick="createTable();">테이블생성</button> -->
+	<Center>
+	<Script>
+	var date = new Date();
+	document.write(date.getFullYear()+"년 "+(date.getMonth()+1)+"월 "+date.getDate()+"일 "+date.getHours()+"시 "+date.getMinutes()+"분 "+date.getSeconds()+"초");
+	</Script>
+	
+	<script>
+	
+		$(document).ready(function(){
+			//$("inputText").hide();
+  		$("#line0").click(function(){
+    	$("inputText").toggle("slow");
+  		});
+		});
+		
+		
+		$(document).ready(function(){
+	  		$("#line2").click(function(){
+	    	$("outputText").toggle("slow");
+	  		});
+			});
+		
+	</script>
+	
+	
+	
+	
+	
+	
+	<br>
+	<table id="line0" border="0" width="300" style="table-layout:fixed; border-top:1px solid;border-bottom:1px solid" ><tr><td align="center" >글 입력창</td></tr></table>
+	
+	<br>
+	<inputText>
+	
+	<br> ID:
+	<input type="text" id="id" maxlength="12"><br>
+	비밀번호: <input type="password" id="password" maxlength="20">
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>제목:
+	<input type="text" id="subject">&nbsp;&nbsp;&nbsp;<br>
+	<textarea rows="10" cols="60" id="message"></textarea>
+	<br>
+	<button onclick="insertData();"> 글 등록 </button>
+	<br>
+	</inputText>
+	<!-- <button onclick="selectData();">조회</button> -->
+	<br>
+	<table id="line1" border="0" width="1200" style="table-layout:fixed;border-bottom:1px solid red" ><tr><td align="center" ></td></tr></table>
+	
+	<br>
+	<br>
+	<br>
+	<br>
+	
+	<table id="line2" border="0" width="300" style="table-layout:fixed; border-top:1px solid;border-bottom:1px solid" ><tr><td align="center" >게시판</td></tr></table>
+	
+	<br>
+	<br>
+	
+	<outputText>
+	<table id="table0" border="1" width="1200" style="border-collapse:collapse;table-layout:fixed"></table>
+	</outputText>
+	
+	</Center>
+
+
+</body>
+</html>

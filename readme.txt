@@ -91,4 +91,23 @@ html : board_ver0213.html
 ------------------------------------------------------------
 
 
+2013.02.14 목요일
+
+
+html : board_ver0214.html
+
+
+1. 레코드 속성에 작성 날짜 추가
+1) create table Test (count integer primary key autoincrement ,id text,subject text,message text,date text,password text,super integer)
+
+2. jQuery
+1) 스크립트 toggle 함수 구현
+2) toggle 함수를 이용하여 게시판의 내용과 댓글을 본문 확인 버튼을 이용하여 toggle 할 수 있도록 디자인하였다.
+3) hide 기능을 이용해 글 입력창을 숨겨진 상태로 초기화하였다.
+
+
+
+-------------------------------------------------------------
+
+
 
